@@ -1,11 +1,13 @@
-package Acme::Intraweb; $VERSION = 1.00;
+package Acme::Intraweb; $VERSION = 1.01;
 sub import {
-    push @INC, sub {
-        use CPANPLUS; my $mod = $_[1];
+    $loaded++ or push @INC, sub {
+        use CPANPLUS; use File::Spec; my $mod = $_[1];
         $mod =~ s./.::.g; $mod =~ s/.pm$//i;
         install($mod) or die "Could not install $mod\n";
-        unless( $tried->{$mod}++ ) { eval "use $mod"; die $@ if $@; }
-        open ($FH, "$INC{$_[1]}") or die $!; return $FH
+        unless( $tried->{$mod}++ ) { for(@INC){ next if ref;
+            if(-e "$_/$_[1]" and -r _){open (my $FH, "$_/$_[1]") or die $!;
+            return $FH} } return undef;
+        }
     }
 }
 1;
